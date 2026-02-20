@@ -20,12 +20,16 @@
   "homepage": "https://github.com/gaurav-jain01/SalonTap-beckend#readme",
   "description": "",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.13"
