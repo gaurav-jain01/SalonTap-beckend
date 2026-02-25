@@ -1,29 +1,9 @@
 import dotenv from 'dotenv';
 import app from './app.js';
 import connectDB from './config/db.js';
-import swaggerUi from "swagger-ui-express";
-import swaggerJsdoc from "swagger-jsdoc";
+
 
 dotenv.config();
-
-const options = {
-    definition: {
-        openapi: "3.0.0",
-        info: {
-            title: "Salontap API",
-            version: "1.0.0",
-            description: "API documentation for Salontap backend"
-        },
-        servers: [
-            {
-                url: "http://localhost:5001"
-            }
-        ]
-    },
-    apis: ["./src/routes/*.js"],
-};
-
-const specs = swaggerJsdoc(options);
 
 const PORT = process.env.PORT || 5001;
 

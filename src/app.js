@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
+import addressRoutes from './routes/addressRoutes.js';
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
@@ -29,16 +30,24 @@ const specs = swaggerJsdoc(options);
 const app = express();
 
 // Middlewares
-app.use(helmet());
-app.use(cors());
-app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Request logging for debugging
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url} - Content-Type: ${req.get('Content-Type')}`);
+    next();
+});
+
+app.use(helmet());
+app.use(cors());
+app.use(morgan('dev'));
+
 // Routes
 // V1 = app side data
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/address', addressRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.get('/', (req, res) => {

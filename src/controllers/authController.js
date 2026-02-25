@@ -6,10 +6,16 @@ export const registerUser = async (req, res) => {
     try {
         const { name, email, password, mobile } = req.body;
 
-        // check if user already exist not 
-        const userExists = await User.findOne({ $or: [{ email }, { mobile }] });
-        if (userExists) {
-            return res.status(400).json({ success: false, error: "User already exists" });
+        // check if user already exist
+        const query = [];
+        if (email) query.push({ email });
+        if (mobile) query.push({ mobile });
+
+        if (query.length > 0) {
+            const userExists = await User.findOne({ $or: query });
+            if (userExists) {
+                return res.status(400).json({ success: false, error: "User already exists" });
+            }
         }
         const user = await User.create({ name, email, password, mobile });
 

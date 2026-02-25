@@ -6,8 +6,8 @@ const userSchema = new mongoose.Schema({
     mobile: String,
     password: String,
     otp: String,
-    otpExpiry: Date,
-});
+    otpExpiry: Date
+}, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);
 
