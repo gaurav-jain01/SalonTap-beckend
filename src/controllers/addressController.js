@@ -81,6 +81,42 @@ export const getAllAddress = async (req, res) => {
     }
 };
 
+export const getSingleAddress = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const { id } = req.params;
+
+        const address = await Address.findById(id);
+
+        if (!address) {
+            return res.status(404).json({
+                success: false,
+                message: "Address not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Address fetched successfully",
+            data: address
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching address",
+            error: error.message
+        });
+    }
+};
+
 export const updateAddress = async (req, res) => {
     try {
         const user = req.user;
@@ -95,7 +131,9 @@ export const updateAddress = async (req, res) => {
         const { id } = req.params;
         const { description, main_text, secondary_text, place_id, latitude, longitude, houseNumber, label, isLocationsFilled } = req.body || {};
 
-        const address = await Address.findByIdAndUpdate(id, {
+        const address = await Address.findByIdAndUpdate( 
+            { _id: id, user: user._id }, 
+            {
             description,
             main_text,
             secondary_text,

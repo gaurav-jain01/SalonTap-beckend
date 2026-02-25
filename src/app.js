@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
 import addressRoutes from './routes/addressRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
@@ -46,6 +47,7 @@ app.use(morgan('dev'));
 
 // Routes
 // V1 = app side data
+app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/address', addressRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));

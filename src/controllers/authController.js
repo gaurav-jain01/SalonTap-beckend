@@ -68,7 +68,7 @@ export const verifyOtp = async (req, res) => {
 };
 
 export const profile = async (req, res) => {
-  const { name, email, gender } = req.body;
+  const { name, email, gender, profileImage, profileImagePublicId } = req.body;
 
   const user = await User.findById(req.user._id);
 
@@ -76,10 +76,33 @@ export const profile = async (req, res) => {
     return res.status(404).json({ success: false, error: "User not found" });
   }
 
-  user.name = name;
-  user.email = email;
-  user.gender = gender;
-  await user.save();
+  // 1️⃣ DELETE OLD PROFILE IMAGE (if new one provided)
+    if (profileImage && user.profileImagePublicId) {
+      try {
+        await cloudinary.uploader.destroy(user.profileImagePublicId);
+        console.log("Old profile image deleted");
+      } catch (err) {
+        console.log("Failed to delete old image:", err);
+      }
+    }
+    // Update only if value exists in request
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+    if (gender !== undefined) user.gender = gender;
+
+    // Update profile image (Cloudinary URL)
+    if (profileImage !== undefined) {
+      user.profileImage = profileImage;
+    }
+    if (profileImagePublicId !== undefined) {
+      user.profileImagePublicId = profileImagePublicId;
+    }
+
+    // Mark user as completed if name added first time
+    if (user.name || user.email || user.gender || user.profileImage) user.isNewUser = false;
+
+    await user.save();
+
 
   res.json({ success: true,
     user: {
@@ -88,6 +111,7 @@ export const profile = async (req, res) => {
         name: user.name || "",
         email: user.email || "",
         gender: user.gender || "",
+        profileImage: user.profileImage || "",
         isPhoneVerified: user.isPhoneVerified,
         isNewUser: user.isNewUser
       }, 
@@ -97,7 +121,7 @@ export const profile = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select(
-      "name email mobile gender isPhoneVerified isNewUser"
+      "name email mobile gender profileImage isPhoneVerified isNewUser"
     );
 
     if (!user) {
@@ -112,6 +136,7 @@ export const getProfile = async (req, res) => {
         name: user.name || "",
         email: user.email || "",
         gender: user.gender || "",
+        profileImage: user.profileImage || "",
         isPhoneVerified: user.isPhoneVerified,
         isNewUser: user.isNewUser
       }

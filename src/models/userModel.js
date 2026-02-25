@@ -5,6 +5,8 @@ const userSchema = new mongoose.Schema({
     email: { type: String },
     gender: { type: String, enum: ['male', 'female', 'other'] },
     mobile: { type: String, unique: true, sparse: true },
+    profileImage: { type: String },
+    profileImagePublicId: { type: String },
     otp: { type: String },
     otpExpiry: { type: Date },
     isPhoneVerified: { type: Boolean, default: false },
