@@ -3,11 +3,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import authRoutes from './routes/authRoutes.js';
-import addressRoutes from './routes/addressRoutes.js';
-import uploadRoutes from './routes/uploadRoutes.js';
-import swaggerUi from "swagger-ui-express";
-import swaggerJsdoc from "swagger-jsdoc";
+
+// User app
+import authRoutes from './routes/users/authRoutes.js';
+import addressRoutes from './routes/users/addressRoutes.js';
+import uploadRoutes from './routes/users/uploadRoutes.js';
+
+
+// Admin app
+import adminAuthRoutes from './routes/admin/authRoutes.js';
+import userRoutes from './routes/admin/userRoutes.js';
+
 
 const options = {
     definition: {
@@ -26,7 +32,6 @@ const options = {
     apis: ["./src/routes/*.js"],
 };
 
-const specs = swaggerJsdoc(options);
 
 const app = express();
 
@@ -46,11 +51,15 @@ app.use(cors());
 app.use(morgan('dev'));
 
 // Routes
-// V1 = app side data
+// V1 = app side routes
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/address', addressRoutes);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
+// Routes 
+// V3 = admin side routes 
+app.use('/api/v3/auth', adminAuthRoutes);
+app.use('/api/v3/users', userRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to SalonTap API' });

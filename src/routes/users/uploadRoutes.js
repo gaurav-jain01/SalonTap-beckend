@@ -1,10 +1,10 @@
 import express from "express";
-import { upload } from "../middleware/multer.js";
+import { upload } from "../../middleware/multer.js";
 import {
     uploadSingleImage,
     uploadMultipleImages,
     deleteImage,
-} from "../controllers/uploadController.js";
+} from "../../controllers/uploadController.js";
 
 const router = express.Router();
 
