@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/users/authRoutes.js';
 import addressRoutes from './routes/users/addressRoutes.js';
 import uploadRoutes from './routes/users/uploadRoutes.js';
+import walletRoutes from './routes/users/walletRoutes.js';
 
 
 // Admin app
@@ -55,6 +56,7 @@ app.use(morgan('dev'));
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/address', addressRoutes);
+app.use('/api/v1/wallet', walletRoutes);
 
 // Routes 
 // V3 = admin side routes 

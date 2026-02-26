@@ -5,8 +5,8 @@ import { protect } from '../../middleware/auth.js';
 const router = express.Router();
 
 router.post('/send-otp', sendOtp);
-router.post('/verify-otp', verifyOtp);
-router.post('/profile', protect, profile);
-router.get('/profile', protect, getProfile);
+router.post('/verify-otp', verifyOtp); //after this profile will be created 
+router.put('/profile', protect, profile); //for update profile
+router.get('/profile', protect, getProfile); //for get profile
 
 export default router;

@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema({
     otpExpiry: { type: Date },
     isPhoneVerified: { type: Boolean, default: false },
     isNewUser: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: true },
+    
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);

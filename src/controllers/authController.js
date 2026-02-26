@@ -64,6 +64,7 @@ export const verifyOtp = async (req, res) => {
     user,
     token,
     isNewUser: !user.name, // optional detection
+    isActive: user.isActive,
   });
 };
 
@@ -138,7 +139,8 @@ export const getProfile = async (req, res) => {
         gender: user.gender || "",
         profileImage: user.profileImage || "",
         isPhoneVerified: user.isPhoneVerified,
-        isNewUser: user.isNewUser
+        isNewUser: user.isNewUser,
+        isActive: user.isActive,
       }
     });
 
