@@ -1,5 +1,6 @@
 import User from "../models/userModel.js"
 import generateToken from "../utils/generateToken.js";
+import Wallet from "../models/walletModel.js";
 
 // Sample controller
 export const sendOtp = async (req, res) => {
@@ -55,6 +56,17 @@ export const verifyOtp = async (req, res) => {
   user.otp = null;
   user.otpExpiry = null;
   await user.save();
+
+  let wallet = await Wallet.findOne({userId: user._id});
+
+  if(!wallet){
+    wallet = await Wallet.create({
+      userId: user._id,
+      balance: { available: 0, hold: 0 },
+      currency: "INR",
+      status: "active",
+    })
+  }
 
   const token = generateToken(res, user._id);
 

@@ -18,7 +18,7 @@ const transactionSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ["wallet", "booking", "giftcard", "admin", "cashback"],
+        enum: ["userWallet", "booking", "giftcard", "admin", "cashback"],
         required: true,
     },
     action: {
