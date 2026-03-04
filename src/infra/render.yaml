@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: salontap-backend
+    runtime: node
+    plan: free # Change to a higher plan if needed
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5001
+      - key: MONGO_URI
+        sync: false # Set this in Render Dashboard
+      - key: JWT_SECRET
+        sync: false # Set this in Render Dashboard
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false # Set this in Render Dashboard
+      - key: CLOUDINARY_API_KEY
+        sync: false # Set this in Render Dashboard
+      - key: CLOUDINARY_API_SECRET
+        sync: false # Set this in Render Dashboard
+
+# Optional: Add static site configuration if you have a frontend in the same repo
+# - type: static
+#   name: salontap-frontend
+#   buildCommand: npm run build
+#   staticPublishDir: dist
