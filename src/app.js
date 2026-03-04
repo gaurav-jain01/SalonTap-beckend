@@ -14,6 +14,8 @@ import walletRoutes from './routes/users/walletRoutes.js';
 // Admin app
 import adminAuthRoutes from './routes/admin/authRoutes.js';
 import userRoutes from './routes/admin/userRoutes.js';
+import categoryRoutes from './routes/admin/categoryRoutes.js';
+import subCategoryRoutes from './routes/admin/subCategoryRoutes.js';
 
 
 const options = {
@@ -62,6 +64,8 @@ app.use('/api/v1/wallet', walletRoutes);
 // V3 = admin side routes 
 app.use('/api/v3/auth', adminAuthRoutes);
 app.use('/api/v3/users', userRoutes);
+app.use('/api/v3/categories', categoryRoutes);
+app.use('/api/v3/sub-categories', subCategoryRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to SalonTap API' });
