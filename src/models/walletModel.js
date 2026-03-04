@@ -32,7 +32,6 @@ walletSchema.virtual("totalBalance").get(function () {
 });
 
 // 🔹 Indexes
-walletSchema.index({ userId: 1 });
 walletSchema.index({ status: 1 });
 
 
