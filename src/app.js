@@ -9,6 +9,9 @@ import authRoutes from './routes/users/authRoutes.js';
 import addressRoutes from './routes/users/addressRoutes.js';
 import uploadRoutes from './routes/users/uploadRoutes.js';
 import walletRoutes from './routes/users/walletRoutes.js';
+import userServiceRoutes from './routes/users/serviceRoutes.js';
+import userBannerRoutes from './routes/users/bannerRoutes.js';
+import userCartRoutes from './routes/users/cartRoutes.js';
 
 
 // Admin app
@@ -16,6 +19,10 @@ import adminAuthRoutes from './routes/admin/authRoutes.js';
 import userRoutes from './routes/admin/userRoutes.js';
 import categoryRoutes from './routes/admin/categoryRoutes.js';
 import subCategoryRoutes from './routes/admin/subCategoryRoutes.js';
+import serviceRoutes from './routes/admin/serviceRoutes.js';
+import bannerRoutes from './routes/admin/bannerRoutes.js';
+import serviceProviderRoutes from './routes/admin/serviceProviderRoutes.js';
+import couponRoutes from './routes/admin/couponRoutes.js';
 
 
 const options = {
@@ -59,6 +66,9 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/address', addressRoutes);
 app.use('/api/v1/wallet', walletRoutes);
+app.use('/api/v1/services', userServiceRoutes);
+app.use('/api/v1/banners', userBannerRoutes);
+app.use('/api/v1/cart', userCartRoutes);
 
 // Routes 
 // V3 = admin side routes 
@@ -66,6 +76,10 @@ app.use('/api/v3/auth', adminAuthRoutes);
 app.use('/api/v3/users', userRoutes);
 app.use('/api/v3/categories', categoryRoutes);
 app.use('/api/v3/sub-categories', subCategoryRoutes);
+app.use('/api/v3/services', serviceRoutes);
+app.use('/api/v3/banners', bannerRoutes);
+app.use('/api/v3/service-providers', serviceProviderRoutes);
+app.use('/api/v3/coupons', couponRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to SalonTap API' });

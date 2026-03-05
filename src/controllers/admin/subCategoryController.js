@@ -1,4 +1,4 @@
-import subCategory from "../../models/subCategoryModel.js";
+import SubCategory from "../../models/subCategoryModel.js";
 import Category from "../../models/categoryModel.js";
 import mongoose from "mongoose";
 
@@ -32,7 +32,7 @@ export const createSubCategory = async (req, res) => {
         }
 
         // 🔹 Check Duplicate Sub-Category (within same category, case-insensitive)
-        const existingSubCategory = await subCategory.findOne({
+        const existingSubCategory = await SubCategory.findOne({
             name: { $regex: new RegExp("^" + name + "$", "i") },
             category: categoryId
         });
@@ -45,7 +45,7 @@ export const createSubCategory = async (req, res) => {
         }
 
         // 🔹 Create Sub-Category
-        const subCategory = await subCategory.create({
+        const newSubCategory = await SubCategory.create({
             name,
             image,
             description,
@@ -56,7 +56,7 @@ export const createSubCategory = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Sub-category created successfully",
-            data: subCategory
+            data: newSubCategory
         });
 
     } catch (error) {
@@ -80,7 +80,7 @@ export const getSubCategories = async (req, res) => {
                 });
             }
 
-            const subCategory = await subCategory.findById(id).populate("category", "name");
+            const subCategory = await SubCategory.findById(id).populate("category", "name");
 
             if (!subCategory) {
                 return res.status(404).json({
@@ -134,13 +134,13 @@ export const getSubCategories = async (req, res) => {
         };
 
         // 🔹 Fetch Data
-        const subCategories = await subCategory.find(filter)
+        const subCategories = await SubCategory.find(filter)
             .populate("category", "name")
             .sort(sortOptions)
             .skip((pageNumber - 1) * limitNumber)
             .limit(limitNumber);
 
-        const total = await subCategory.countDocuments(filter);
+        const total = await SubCategory.countDocuments(filter);
 
         return res.status(200).json({
             success: true,
@@ -172,7 +172,7 @@ export const updateSubCategory = async (req, res) => {
             });
         }
 
-        const subCategory = await subCategory.findById(id);
+        const subCategory = await SubCategory.findById(id);
 
         if (!subCategory) {
             return res.status(404).json({
@@ -207,7 +207,7 @@ export const updateSubCategory = async (req, res) => {
             }
 
             // 🔹 Check duplicate in new category
-            const existingSubCategory = await subCategory.findOne({
+            const existingSubCategory = await SubCategory.findOne({
                 name: subCategory.name,
                 category: categoryId,
                 _id: { $ne: id }
@@ -259,7 +259,7 @@ export const toggleSubCategoryStatus = async (req, res) => {
             });
         }
 
-        const subCategory = await subCategory.findById(id);
+        const subCategory = await SubCategory.findById(id);
 
         if (!subCategory) {
             return res.status(404).json({
@@ -267,10 +267,20 @@ export const toggleSubCategoryStatus = async (req, res) => {
                 message: "Sub-category not found"
             });
         }
+
+        subCategory.isActive = !subCategory.isActive;
+        await subCategory.save();
+
+        return res.status(200).json({
+            success: true,
+            message: `Sub-category ${subCategory.isActive ? "activated" : "deactivated"} successfully`,
+            data: subCategory
+        });
+
     } catch (error) {
         return res.status(500).json({
             success: false,
             message: error.message
         });
     }
-}
+};
