@@ -1,5 +1,5 @@
-import Cart from "../../models/cartModel.js";
-import Service from "../../models/serviceModel.js";
+import Cart from "../models/cartModel.js";
+import Service from "../models/serviceModel.js";
 
 const calculateTotals = async (cart) => {
     let regularTotal = 0;
