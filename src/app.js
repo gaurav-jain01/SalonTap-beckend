@@ -90,6 +90,10 @@ app.get('/', (req, res) => {
     res.json({ message: 'Welcome to SalonTap API' });
 });
 
+app.get("/health", (req, res) => {
+  res.json({ status: "OK" });
+});
+
 // Basic Error Handler
 app.use((err, req, res, next) => {
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
