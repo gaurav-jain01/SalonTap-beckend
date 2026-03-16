@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import app from './app.js';
 import connectDB from './config/db.js';
+import './job/renderAlive.js';
 
 const PORT = process.env.PORT || 5001;
 
