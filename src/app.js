@@ -12,6 +12,7 @@ import walletRoutes from './routes/users/walletRoutes.js';
 import userServiceRoutes from './routes/users/serviceRoutes.js';
 import userBannerRoutes from './routes/users/bannerRoutes.js';
 import userCartRoutes from './routes/users/cartRoutes.js';
+import homeRoutes from './routes/users/homeRoutes.js';
 
 
 // Admin app
@@ -65,6 +66,7 @@ app.use(morgan('dev'));
 // V1 = app side routes
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/home',homeRoutes);
 app.use('/api/v1/address', addressRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/services', userServiceRoutes);

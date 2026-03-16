@@ -118,10 +118,6 @@ export const getBanners = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            total,
-            page: pageNumber,
-            totalPages: Math.ceil(total / limitNumber),
-            count: banners.length,
             data: banners
         });
 

@@ -16,22 +16,10 @@ const bannerSchema = new mongoose.Schema(
         description: {
             type: String
         },
-
-        linkType: {
-            type: String,
-            enum: ["service", "external", "none"],
-            default: "none"
-        },
-
         service: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Service"
         },
-
-        externalLink: {
-            type: String
-        },
-
         order: {
             type: Number,
             default: 0
