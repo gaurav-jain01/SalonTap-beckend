@@ -1,0 +1,12 @@
+import { Router } from "express";
+import { upload } from "../../middleware/multer.js";
+import { uploadSingleImage, uploadMultipleImages, deleteImage } from "../../controllers/uploadController.js";
+
+const router = Router();
+
+router.post("/single", upload.single("image"), uploadSingleImage);
+router.post("/multiple", upload.array("images", 10), uploadMultipleImages);
+router.delete("/delete", deleteImage);
+
+
+export default router;

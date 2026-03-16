@@ -35,20 +35,15 @@ export const uploadSingleImage = async (req, res) => {
 
 export const uploadMultipleImages = async (req, res) => {
   try {
-
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No files uploaded"
-      });
-    }
+    if (!req.files || req.files.length === 0)
+      return res.status(400).json({ success: false, message: "No files uploaded" });
 
     const folder = req.body.folder || "salontap/products";
     const uploaded = [];
+
     let pending = req.files.length;
 
     req.files.forEach((file) => {
-
       const stream = cloudinary.uploader.upload_stream(
         {
           folder,
@@ -59,14 +54,7 @@ export const uploadMultipleImages = async (req, res) => {
           ]
         },
         (error, result) => {
-
-          if (error) {
-            console.log("Cloudinary Error:", error);
-            return res.status(500).json({
-              success: false,
-              message: "Image upload failed"
-            });
-          }
+          if (error) console.log(error);
 
           uploaded.push({
             url: result.secure_url,
@@ -74,12 +62,8 @@ export const uploadMultipleImages = async (req, res) => {
           });
 
           pending--;
-
           if (pending === 0) {
-            return res.json({
-              success: true,
-              images: uploaded
-            });
+            return res.json({ success: true, images: uploaded });
           }
         }
       );
@@ -88,11 +72,7 @@ export const uploadMultipleImages = async (req, res) => {
     });
 
   } catch (err) {
-    console.log("Upload Controller Error:", err);
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 

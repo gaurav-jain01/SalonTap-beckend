@@ -23,6 +23,7 @@ import serviceRoutes from './routes/admin/serviceRoutes.js';
 import bannerRoutes from './routes/admin/bannerRoutes.js';
 import serviceProviderRoutes from './routes/admin/serviceProviderRoutes.js';
 import couponRoutes from './routes/admin/couponRoutes.js';
+import adminUploadRoutes from './routes/admin/uploadRoutes.js';
 
 
 const options = {
@@ -72,6 +73,8 @@ app.use('/api/v1/cart', userCartRoutes);
 
 // Routes 
 // V3 = admin side routes 
+
+app.use('/api/v3/upload', adminUploadRoutes);
 app.use('/api/v3/auth', adminAuthRoutes);
 app.use('/api/v3/users', userRoutes);
 app.use('/api/v3/categories', categoryRoutes);
