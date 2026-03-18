@@ -3,7 +3,7 @@ import Category from "../../models/categoryModel.js";
 
 export const createCategory = async (req, res) => {
     try {
-        const { name, image, description, order, gender } = req.body;
+        const { name, image, description, order } = req.body;
 
         // 🔹 Basic Validation
         if (!name) {
@@ -18,7 +18,7 @@ export const createCategory = async (req, res) => {
             name: { $regex: new RegExp("^" + name + "$", "i") }
         });
 
-        if (existingCategory && existingCategory.gender === gender) {
+        if (existingCategory) {
             return res.status(400).json({
                 success: false,
                 message: "Category already exists"
@@ -31,7 +31,6 @@ export const createCategory = async (req, res) => {
             image,
             description,
             order,
-            gender
         });
 
         return res.status(201).json({
