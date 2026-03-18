@@ -18,7 +18,7 @@ export const createCategory = async (req, res) => {
             name: { $regex: new RegExp("^" + name + "$", "i") }
         });
 
-        if (existingCategory) {
+        if (existingCategory && existingCategory.gender === gender) {
             return res.status(400).json({
                 success: false,
                 message: "Category already exists"
