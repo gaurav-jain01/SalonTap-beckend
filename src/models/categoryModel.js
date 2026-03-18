@@ -32,6 +32,12 @@ const categorySchema = new mongoose.Schema(
         isActive: {
             type: Boolean,
             default: true
+        },
+
+        gender: {
+            type: String,
+            enum: ["men", "women", "unisex"],
+            default: "unisex"
         }
 
     },

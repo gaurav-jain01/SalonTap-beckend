@@ -3,7 +3,7 @@ import Category from "../../models/categoryModel.js";
 
 export const createCategory = async (req, res) => {
     try {
-        const { name, image, description, order } = req.body;
+        const { name, image, description, order, gender } = req.body;
 
         // 🔹 Basic Validation
         if (!name) {
@@ -30,7 +30,8 @@ export const createCategory = async (req, res) => {
             name,
             image,
             description,
-            order
+            order,
+            gender
         });
 
         return res.status(201).json({
