@@ -44,13 +44,21 @@ const serviceSchema = new mongoose.Schema(
 
         order: {
             type: Number,
-            default: 0
+            default: 0,
+            index: true
         },
 
+
+        gender: {
+            type: String,
+            enum: ["male", "female", "unisex"],
+            default: "unisex"
+        },
         isActive: {
             type: Boolean,
             default: true
         }
+
     },
     { timestamps: true }
 );

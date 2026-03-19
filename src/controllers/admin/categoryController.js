@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Category from "../../models/categoryModel.js";
+import cache from "../../utils/cache.js";
+
 
 export const createCategory = async (req, res) => {
     try {
@@ -33,7 +35,11 @@ export const createCategory = async (req, res) => {
             order,
         });
 
+        // 🔹 Clear Cache
+        cache.del("homeData");
+
         return res.status(201).json({
+
             success: true,
             message: "Category created successfully",
             data: category
@@ -151,7 +157,11 @@ export const updateCategory = async (req, res) => {
 
         await category.save();
 
+        // 🔹 Clear Cache
+        cache.del("homeData");
+
         return res.status(200).json({
+
             success: true,
             message: "Category updated successfully",
             data: category
@@ -183,7 +193,11 @@ export const toggleCategoryStatus = async (req, res) => {
         category.isActive = !category.isActive;
         await category.save();
 
+        // 🔹 Clear Cache
+        cache.del("homeData");
+
         return res.status(200).json({
+
             success: true,
             message: `Category ${category.isActive ? "activated" : "deactivated"} successfully`,
             data: category

@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import Banner from "../../models/bannerModel.js";
 import Service from "../../models/serviceModel.js";
+import cache from "../../utils/cache.js";
+
 
 export const createBanner = async (req, res) => {
     try {
@@ -43,7 +45,11 @@ export const createBanner = async (req, res) => {
             order: order || 0
         });
 
+        // 🔹 Clear Cache
+        cache.del("homeData");
+
         return res.status(201).json({
+
             success: true,
             message: "Banner created successfully",
             data: banner
@@ -180,7 +186,11 @@ export const updateBanner = async (req, res) => {
         await banner.save();
         await banner.populate("service", "name");
 
+        // 🔹 Clear Cache
+        cache.del("homeData");
+
         return res.status(200).json({
+
             success: true,
             message: "Banner updated successfully",
             data: banner
@@ -214,7 +224,11 @@ export const deleteBanner = async (req, res) => {
             });
         }
 
+        // 🔹 Clear Cache
+        cache.del("homeData");
+
         return res.status(200).json({
+
             success: true,
             message: "Banner deleted successfully"
         });
