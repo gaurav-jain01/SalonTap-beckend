@@ -1,6 +1,6 @@
-import User from "../models/userModel.js"
-import generateToken from "../utils/generateToken.js";
-import Wallet from "../models/walletModel.js";
+import User from "../../models/userModel.js"
+import generateToken from "../../utils/generateToken.js";
+import Wallet from "../../models/walletModel.js";
 
 // Sample controller
 export const sendOtp = async (req, res) => {

@@ -10,7 +10,6 @@ import addressRoutes from './routes/users/addressRoutes.js';
 import uploadRoutes from './routes/users/uploadRoutes.js';
 import walletRoutes from './routes/users/walletRoutes.js';
 import userServiceRoutes from './routes/users/serviceRoutes.js';
-import userBannerRoutes from './routes/users/bannerRoutes.js';
 import userCartRoutes from './routes/users/cartRoutes.js';
 import homeRoutes from './routes/users/homeRoutes.js';
 
@@ -69,9 +68,8 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/home',homeRoutes);
 app.use('/api/v1/address', addressRoutes);
 app.use('/api/v1/wallet', walletRoutes);
-app.use('/api/v1/services', userServiceRoutes);
-app.use('/api/v1/banners', userBannerRoutes);
-app.use('/api/v1/cart', userCartRoutes);
+// app.use('/api/v1/services', userServiceRoutes);
+// app.use('/api/v1/cart', userCartRoutes);
 
 // Routes 
 // V3 = admin side routes 
