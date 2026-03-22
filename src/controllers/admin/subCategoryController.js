@@ -284,3 +284,38 @@ export const toggleSubCategoryStatus = async (req, res) => {
         });
     }
 };
+
+export const deleteSubCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid sub-category ID"
+            });
+        }
+
+        const subCategory = await SubCategory.findById(id);
+
+        if (!subCategory) {
+            return res.status(404).json({
+                success: false,
+                message: "Sub-category not found"
+            });
+        }
+
+        await SubCategory.findByIdAndDelete(id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Sub-category deleted successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
