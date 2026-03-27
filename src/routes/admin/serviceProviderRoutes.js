@@ -3,7 +3,9 @@ import {
     createServiceProvider,
     getServiceProviders,
     updateServiceProvider,
-    deleteServiceProvider
+    deleteServiceProvider,
+    addServiceProviderAddress,
+    addServiceProviderSlots
 } from "../../controllers/admin/serviceProviderController.js";
 import { protectAdmin } from "../../middleware/auth.js";
 
@@ -14,5 +16,8 @@ router.get("/", protectAdmin, getServiceProviders);
 router.get("/:id", protectAdmin, getServiceProviders);
 router.put("/:id", protectAdmin, updateServiceProvider);
 router.delete("/:id", protectAdmin, deleteServiceProvider);
+
+router.post("/address", protectAdmin, addServiceProviderAddress);
+router.post("/slots", protectAdmin, addServiceProviderSlots);
 
 export default router;

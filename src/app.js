@@ -81,7 +81,7 @@ app.use('/api/v3/categories', categoryRoutes);
 app.use('/api/v3/sub-categories', subCategoryRoutes);
 app.use('/api/v3/services', serviceRoutes);
 app.use('/api/v3/banners', bannerRoutes);
-app.use('/api/v3/service-providers', serviceProviderRoutes);
+app.use('/api/v3/sp', serviceProviderRoutes);
 app.use('/api/v3/coupons', couponRoutes);
 
 app.get('/', (req, res) => {
