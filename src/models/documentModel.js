@@ -12,7 +12,7 @@ const documentSchema = new mongoose.Schema(
     // 🔹 Document Type (dynamic)
     type: {
       type: String,
-      enum: ["aadhaar", "pan", "certificate"],
+      enum: ["aadhaar", "pan", "certificate", "passport", "driving_license", "voter_id", "other"],
       required: true
     },
 
@@ -21,9 +21,6 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-
-    // 🔹 Optional fields
-    documentNumber: String,
 
     meta: {
       docType: String // e.g. Electricity Bill (future)

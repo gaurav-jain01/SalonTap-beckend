@@ -9,9 +9,11 @@ const slotSchema = new mongoose.Schema(
       index: true
     },
 
-    date: {
-      type: String, // "2026-03-27"
+    dayOfWeek: {
+      type: Number, // 0-6 (Sun-Sat)
       required: true,
+      min: 0,
+      max: 6,
       index: true
     },
 
@@ -22,13 +24,8 @@ const slotSchema = new mongoose.Schema(
       index: true
     },
 
-    startTime: {
-      type: String, // "10:00" (24h format)
-      required: true
-    },
-
-    endTime: {
-      type: String, // "11:00"
+    time: {
+      type: String, // "10:00"
       required: true
     }
   },
@@ -37,7 +34,7 @@ const slotSchema = new mongoose.Schema(
 
 // prevent duplicate slots
 slotSchema.index(
-  { serviceProviderId: 1, date: 1, startTime: 1 },
+  { serviceProviderId: 1, dayOfWeek: 1, time: 1 },
   { unique: true }
 );
 
