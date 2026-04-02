@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 
 export const createSubCategory = async (req, res) => {
     try {
-        const { name, image, description, order, categoryId } = req.body;
+        const { name, image, description, categoryId } = req.body;
 
         // 🔹 Basic Validation
         if (!name || !categoryId) {
@@ -49,7 +49,6 @@ export const createSubCategory = async (req, res) => {
             name,
             image,
             description,
-            order,
             category: categoryId
         });
 
@@ -100,8 +99,6 @@ export const getSubCategories = async (req, res) => {
             page = 1,
             limit = 10,
             search = "",
-            sortBy = "order",
-            sortOrder = "asc",
             categoryId
         } = req.query;
 
@@ -128,15 +125,9 @@ export const getSubCategories = async (req, res) => {
             filter.category = categoryId;
         }
 
-        // 🔹 Sorting
-        const sortOptions = {
-            [sortBy]: sortOrder === "asc" ? 1 : -1
-        };
-
         // 🔹 Fetch Data
         const subCategories = await SubCategory.find(filter)
             .populate("category", "name")
-            .sort(sortOptions)
             .skip((pageNumber - 1) * limitNumber)
             .limit(limitNumber);
 
@@ -162,7 +153,7 @@ export const getSubCategories = async (req, res) => {
 export const updateSubCategory = async (req, res) => {
     try {
         const { id } = req.params;
-        const { image, description, order, categoryId } = req.body;
+        const { image, description, categoryId } = req.body;
 
         // 🔹 Validate ID
         if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -226,7 +217,6 @@ export const updateSubCategory = async (req, res) => {
         // 🔹 Update allowed fields
         if (image) subCategory.image = image;
         if (description) subCategory.description = description;
-        if (order !== undefined) subCategory.order = order;
 
         await subCategory.save();
 

@@ -5,7 +5,16 @@ import SubCategory from "../../models/subCategoryModel.js";
 
 export const createService = async (req, res) => {
     try {
-        const { name, image, description, regularPrice, salePrice, duration, categoryId, subCategoryId, order } = req.body;
+        const {
+            name,
+            image,
+            description,
+            regularPrice,
+            salePrice,
+            duration,
+            categoryId,
+            subCategoryId
+        } = req.body;
 
         // 🔹 Basic Validation
         if (!name || regularPrice === undefined || salePrice === undefined || !duration || !categoryId) {
@@ -15,7 +24,15 @@ export const createService = async (req, res) => {
             });
         }
 
-        // 🔹 Validate Category ID
+        // 🔹 Price Validation
+        if (salePrice > regularPrice) {
+            return res.status(400).json({
+                success: false,
+                message: "Sale price cannot be greater than regular price"
+            });
+        }
+
+        // 🔹 Validate Category
         if (!mongoose.Types.ObjectId.isValid(categoryId)) {
             return res.status(400).json({
                 success: false,
@@ -23,7 +40,6 @@ export const createService = async (req, res) => {
             });
         }
 
-        // 🔹 Check if Category exists
         const category = await Category.findById(categoryId);
         if (!category) {
             return res.status(404).json({
@@ -32,7 +48,7 @@ export const createService = async (req, res) => {
             });
         }
 
-        // 🔹 Validate Sub-Category ID if provided
+        // 🔹 Validate SubCategory
         if (subCategoryId) {
             if (!mongoose.Types.ObjectId.isValid(subCategoryId)) {
                 return res.status(400).json({
@@ -49,7 +65,6 @@ export const createService = async (req, res) => {
                 });
             }
 
-            // 🔹 Ensure Sub-Category belongs to the selected Category
             if (subCategory.category.toString() !== categoryId) {
                 return res.status(400).json({
                     success: false,
@@ -58,39 +73,47 @@ export const createService = async (req, res) => {
             }
         }
 
-        // 🔹 Check Duplicate Service (within same category & sub-category, case-insensitive)
-        const checkFilter = {
-            name: { $regex: new RegExp("^" + name + "$", "i") },
-            category: categoryId
-        };
-        if (subCategoryId) checkFilter.subCategory = subCategoryId;
+        // 🔥 Generate slug (IMPORTANT)
+        const slug = name
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/[^\w\-]+/g, "");
 
-        const existingService = await Service.findOne(checkFilter);
+        // 🔥 Duplicate check (GLOBAL)
+        const existingService = await Service.findOne({
+            slug,
+            isDeleted: false
+        });
 
         if (existingService) {
             return res.status(400).json({
                 success: false,
-                message: "Service already exists in this category/sub-category"
+                message: "Service already exists"
             });
         }
 
         // 🔹 Create Service
         const service = await Service.create({
             name,
-            image,
+            slug,
+            images: image ? [image] : [],
             description,
             regularPrice,
             salePrice,
             duration,
             category: categoryId,
-            subCategory: subCategoryId || null,
-            order
+            subCategory: subCategoryId || null
         });
 
         return res.status(201).json({
             success: true,
             message: "Service created successfully",
-            data: service
+            data: {
+                id: service._id,
+                name: service.name,
+                slug: service.slug
+            }
         });
 
     } catch (error) {
@@ -105,7 +128,7 @@ export const getServices = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // 🔹 If ID provided → return single service
+        // 🔹 Get single service
         if (id) {
             if (!mongoose.Types.ObjectId.isValid(id)) {
                 return res.status(400).json({
@@ -114,9 +137,14 @@ export const getServices = async (req, res) => {
                 });
             }
 
-            const service = await Service.findById(id)
+            const service = await Service.findOne({
+                _id: id,
+                isDeleted: false,
+                isActive: true
+            })
                 .populate("category", "name")
-                .populate("subCategory", "name");
+                .populate("subCategory", "name")
+                .lean();
 
             if (!service) {
                 return res.status(404).json({
@@ -136,25 +164,30 @@ export const getServices = async (req, res) => {
             page = 1,
             limit = 10,
             search = "",
-            sortBy = "order",
-            sortOrder = "asc",
             categoryId,
-            subCategoryId
+            subCategoryId,
+            sortBy = "createdAt", // NEW
+            order = "desc"        // NEW
         } = req.query;
 
         const pageNumber = parseInt(page);
         const limitNumber = parseInt(limit);
 
-        // 🔹 Build Filter
-        const filter = {};
+        // 🔹 Base Filter (IMPORTANT)
+        const filter = {
+            isDeleted: false,
+            isActive: true
+        };
 
+        // 🔹 Search (basic for now)
         if (search) {
             filter.$or = [
                 { name: { $regex: search, $options: "i" } },
-                { description: { $regex: search, $options: "i" } }
+                { slug: { $regex: search, $options: "i" } }
             ];
         }
 
+        // 🔹 Category Filter
         if (categoryId) {
             if (!mongoose.Types.ObjectId.isValid(categoryId)) {
                 return res.status(400).json({
@@ -165,6 +198,7 @@ export const getServices = async (req, res) => {
             filter.category = categoryId;
         }
 
+        // 🔹 SubCategory Filter
         if (subCategoryId) {
             if (!mongoose.Types.ObjectId.isValid(subCategoryId)) {
                 return res.status(400).json({
@@ -177,7 +211,7 @@ export const getServices = async (req, res) => {
 
         // 🔹 Sorting
         const sortOptions = {
-            [sortBy]: sortOrder === "asc" ? 1 : -1
+            [sortBy]: order === "asc" ? 1 : -1
         };
 
         // 🔹 Fetch Data
@@ -186,7 +220,8 @@ export const getServices = async (req, res) => {
             .populate("subCategory", "name")
             .sort(sortOptions)
             .skip((pageNumber - 1) * limitNumber)
-            .limit(limitNumber);
+            .limit(limitNumber)
+            .lean();
 
         const total = await Service.countDocuments(filter);
 
@@ -210,7 +245,16 @@ export const getServices = async (req, res) => {
 export const updateService = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, image, description, regularPrice, salePrice, duration, categoryId, subCategoryId, order } = req.body;
+        const {
+            name,
+            image,
+            description,
+            regularPrice,
+            salePrice,
+            duration,
+            categoryId,
+            subCategoryId
+        } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
@@ -219,7 +263,10 @@ export const updateService = async (req, res) => {
             });
         }
 
-        const service = await Service.findById(id);
+        const service = await Service.findOne({
+            _id: id,
+            isDeleted: false
+        });
 
         if (!service) {
             return res.status(404).json({
@@ -228,7 +275,18 @@ export const updateService = async (req, res) => {
             });
         }
 
-        // 🔹 If Category or Subcategory update is requested, validate them
+        // 🔹 Price validation
+        const finalRegularPrice = regularPrice ?? service.regularPrice;
+        const finalSalePrice = salePrice ?? service.salePrice;
+
+        if (finalSalePrice > finalRegularPrice) {
+            return res.status(400).json({
+                success: false,
+                message: "Sale price cannot be greater than regular price"
+            });
+        }
+
+        // 🔹 Category validation
         if (categoryId) {
             if (!mongoose.Types.ObjectId.isValid(categoryId)) {
                 return res.status(400).json({
@@ -236,11 +294,19 @@ export const updateService = async (req, res) => {
                     message: "Invalid category ID"
                 });
             }
+
             const category = await Category.findById(categoryId);
-            if (!category) return res.status(404).json({ success: false, message: "Category not found" });
+            if (!category) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Category not found"
+                });
+            }
+
             service.category = categoryId;
         }
 
+        // 🔹 SubCategory validation
         if (subCategoryId) {
             if (!mongoose.Types.ObjectId.isValid(subCategoryId)) {
                 return res.status(400).json({
@@ -248,31 +314,62 @@ export const updateService = async (req, res) => {
                     message: "Invalid sub-category ID"
                 });
             }
-            const subCategory = await SubCategory.findById(subCategoryId);
-            if (!subCategory) return res.status(404).json({ success: false, message: "Sub-category not found" });
 
-            // Validate sub-category belongs to category
+            const subCategory = await SubCategory.findById(subCategoryId);
+            if (!subCategory) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Sub-category not found"
+                });
+            }
+
             const targetCategoryId = categoryId || service.category.toString();
+
             if (subCategory.category.toString() !== targetCategoryId) {
                 return res.status(400).json({
                     success: false,
                     message: "Sub-category does not belong to the selected category"
                 });
             }
+
             service.subCategory = subCategoryId;
-        } else if (req.body.hasOwnProperty('subCategoryId') && !subCategoryId) {
-            // Explicitly setting subCategory to null
+        }
+        else if (req.body.hasOwnProperty("subCategoryId") && !subCategoryId) {
             service.subCategory = null;
         }
 
-        // 🔹 Update other fields
-        if (name) service.name = name;
-        if (image) service.image = image;
-        if (description) service.description = description;
+        // 🔥 Handle name + slug
+        if (name) {
+            const slug = name
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, "-")
+                .replace(/[^\w\-]+/g, "");
+
+            // 🔥 Duplicate check
+            const existing = await Service.findOne({
+                slug,
+                _id: { $ne: id },
+                isDeleted: false
+            });
+
+            if (existing) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Service with this name already exists"
+                });
+            }
+
+            service.name = name;
+            service.slug = slug;
+        }
+
+        // 🔹 Other fields
+        if (image) service.images = [image]; // or push if needed
+        if (description !== undefined) service.description = description;
         if (regularPrice !== undefined) service.regularPrice = regularPrice;
         if (salePrice !== undefined) service.salePrice = salePrice;
         if (duration !== undefined) service.duration = duration;
-        if (order !== undefined) service.order = order;
 
         await service.save();
 
@@ -304,7 +401,10 @@ export const toggleServiceStatus = async (req, res) => {
             });
         }
 
-        const service = await Service.findById(id);
+        const service = await Service.findOne({
+            _id: id,
+            isDeleted: false
+        });
 
         if (!service) {
             return res.status(404).json({
@@ -319,7 +419,10 @@ export const toggleServiceStatus = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: `Service ${service.isActive ? "activated" : "deactivated"} successfully`,
-            data: service
+            data: {
+                id: service._id,
+                isActive: service.isActive
+            }
         });
 
     } catch (error) {
@@ -341,7 +444,10 @@ export const deleteService = async (req, res) => {
             });
         }
 
-        const service = await Service.findByIdAndDelete(id);
+        const service = await Service.findOne({
+            _id: id,
+            isDeleted: false
+        });
 
         if (!service) {
             return res.status(404).json({
@@ -349,6 +455,12 @@ export const deleteService = async (req, res) => {
                 message: "Service not found"
             });
         }
+
+        // 🔥 Soft delete
+        service.isDeleted = true;
+        service.isActive = false;
+
+        await service.save();
 
         return res.status(200).json({
             success: true,

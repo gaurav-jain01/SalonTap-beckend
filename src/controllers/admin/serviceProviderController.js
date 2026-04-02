@@ -153,7 +153,9 @@ export const addServiceProviderAddress = async (req, res) => {
 
 export const addServiceProviderSlots = async (req, res) => {
     try {
-        const { serviceProviderId, addressId, slotsData } = req.body;
+        const { serviceProviderId, addressId, slotsData, months = 6 } = req.body;
+
+        const validMonths = months && months > 0 ? months : 6;
 
         if (!serviceProviderId || !addressId || !slotsData || !Array.isArray(slotsData)) {
             return res.status(400).json({
@@ -173,16 +175,59 @@ export const addServiceProviderSlots = async (req, res) => {
 
         const slotsToCreate = [];
 
+        const generateDatesForDay = (dayOfWeek, months = 6) => {
+            const dates = [];
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // ✅ normalize (important)
+
+            for (let m = 0; m < months; m++) {
+                const firstDay = new Date(today.getFullYear(), today.getMonth() + m, 1);
+                const lastDay = new Date(today.getFullYear(), today.getMonth() + m + 1, 0);
+
+                let current = new Date(firstDay);
+
+                while (current <= lastDay) {
+                    current.setHours(0, 0, 0, 0); // ✅ normalize each date
+
+                    if (
+                        current.getDay() === dayOfWeek &&
+                        current >= today // ✅ now safe comparison
+                    ) {
+                        dates.push(new Date(current));
+                    }
+
+                    current.setDate(current.getDate() + 1);
+                }
+            }
+
+            return dates;
+        };
+
         // 🔹 Extract repeating slots from input (slots is now an array of strings)
         slotsData.forEach(dayConfig => {
             const dayNum = Number(dayConfig.dayOfWeek);
+
             if (Array.isArray(dayConfig.slots)) {
-                dayConfig.slots.forEach(timeString => {
-                    slotsToCreate.push({
-                        serviceProviderId,
-                        addressId,
-                        dayOfWeek: dayNum,
-                        time: timeString
+                const dates = generateDatesForDay(dayNum, validMonths);
+
+                dates.forEach(date => {
+                    dayConfig.slots.forEach(timeString => {
+
+                        const formattedDate = date.toISOString().split("T")[0];
+
+                        slotsToCreate.push({
+                            serviceProviderId,
+                            addressId,
+                            dayOfWeek: dayNum,
+                            date: formattedDate,
+                            time: timeString,
+
+                            isBooked: false,
+                            isBlocked: false,
+                            isActive: true
+                        });
+
                     });
                 });
             }
@@ -422,42 +467,68 @@ export const deleteServiceProviderAddress = async (req, res) => {
 // 🔹 Slots Controllers
 export const getServiceProviderSlots = async (req, res) => {
     try {
-        const { id } = req.params; // Provider ID
-        const { dayOfWeek, addressId } = req.query;
+        const { id } = req.params;
+        const { date, addressId } = req.query;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid provider ID" });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid provider ID"
+            });
         }
 
-        const filter = { serviceProviderId: id };
+        if (!date) {
+            return res.status(400).json({
+                success: false,
+                message: "Date is required"
+            });
+        }
 
-        // 🔹 Filter by Address if provided
+        const filter = {
+            serviceProviderId: id,
+            date: date,
+            isActive: true
+        };
+
         if (addressId) {
             if (!mongoose.Types.ObjectId.isValid(addressId)) {
-                return res.status(400).json({ success: false, message: "Invalid address ID" });
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid address ID"
+                });
             }
             filter.addressId = addressId;
         }
 
-        // 🔹 Filter by Day (direct 0-6)
-        if (dayOfWeek !== undefined) {
-            const dayNum = Number(dayOfWeek);
-            if (isNaN(dayNum) || dayNum < 0 || dayNum > 6) {
-                return res.status(400).json({ success: false, message: "dayOfWeek must be a number between 0 and 6" });
-            }
-            filter.dayOfWeek = dayNum;
-        }
-
         const slots = await Slot.find(filter).sort({ time: 1 });
 
-        return res.status(200).json({ 
-            success: true, 
-            count: slots.length,
-            requestedDay: dayOfWeek !== undefined ? dayOfWeek : "Any",
-            data: slots 
+        // 🔥 Convert DB → UI format
+        const formattedSlots = slots
+            .map(slot => {
+                let status = "available";
+
+                if (slot.isBlocked) status = "blocked";
+                else if (slot.isBooked) status = "booked";
+
+                return {
+                    id: slot._id,
+                    time: slot.time,
+                    status
+                };
+            });
+
+        return res.status(200).json({
+            success: true,
+            totalSlots: formattedSlots.length,
+            date,
+            slots: formattedSlots
         });
+
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
