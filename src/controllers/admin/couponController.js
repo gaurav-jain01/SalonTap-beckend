@@ -1,19 +1,45 @@
 import mongoose from "mongoose";
 import Coupon from "../../models/couponModel.js";
+import Service from "../../models/serviceModel.js";
 
 export const createCoupon = async (req, res) => {
     try {
         const {
             code, description, discountType, discountValue,
-            minOrderValue, maxDiscountAmount, startDate, expiryDate, usageLimit
+            minOrderAmount, applicableServices, usageLimit, perUserLimit, validFrom, validTill
         } = req.body;
 
         // 🔹 Basic Validation
-        if (!code || !discountType || !discountValue || !startDate || !expiryDate) {
+        if (!code || !discountType || !discountValue || !validFrom || !validTill) {
             return res.status(400).json({
                 success: false,
                 message: "Code, discount type, value, start date, and expiry date are required"
             });
+        }
+
+        if (applicableServices && applicableServices.length > 0) {
+
+            // 1. Check valid ObjectIds
+            const invalidIds = applicableServices.filter(id => !mongoose.Types.ObjectId.isValid(id));
+            if (invalidIds.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid service IDs provided",
+                    data: invalidIds
+                });
+            }
+
+            // 2. Check if services exist
+            const services = await Service.find({
+                _id: { $in: applicableServices }
+            }).select("_id");
+
+            if (services.length !== applicableServices.length) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Some services do not exist"
+                });
+            }
         }
 
         // 🔹 Check for duplicate code
@@ -31,11 +57,13 @@ export const createCoupon = async (req, res) => {
             description,
             discountType,
             discountValue,
-            minOrderValue,
-            maxDiscountAmount,
-            startDate,
-            expiryDate,
-            usageLimit
+            minOrderAmount,
+            applicableServices,
+            usageLimit,
+            perUserLimit,
+            validFrom,
+            validTill,
+            isActive: true
         });
 
         return res.status(201).json({
@@ -169,3 +197,26 @@ export const deleteCoupon = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message });
     }
 };
+
+export const toggleCouponStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid coupon ID" });
+        }
+        const coupon = await Coupon.findById(id);
+        if (!coupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found" });
+        }
+        coupon.isActive = !coupon.isActive;
+        await coupon.save();
+        return res.status(200).json({
+            success: true,
+            message: "Coupon status toggled successfully",
+            data: coupon
+        });
+    }
+    catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}

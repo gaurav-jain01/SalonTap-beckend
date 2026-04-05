@@ -1,65 +1,35 @@
 import mongoose from "mongoose";
 
-const couponSchema = new mongoose.Schema(
-    {
-        code: {
-            type: String,
-            required: true,
-            unique: true,
-            uppercase: true,
-            trim: true
-        },
+const couponSchema = new mongoose.Schema({
+    code: { type: String, unique: true },
+    description: { type: String },
 
-        description: {
-            type: String
-        },
-
-        discountType: {
-            type: String,
-            enum: ["percentage", "fixed"],
-            required: true
-        },
-
-        discountValue: {
-            type: Number,
-            required: true
-        },
-
-        minOrderValue: {
-            type: Number,
-            default: 0
-        },
-
-        maxDiscountAmount: {
-            type: Number // Important for percentage discounts
-        },
-
-        startDate: {
-            type: Date,
-            required: true
-        },
-
-        expiryDate: {
-            type: Date,
-            required: true
-        },
-
-        usageLimit: {
-            type: Number,
-            default: null // null means unlimited
-        },
-
-        usageCount: {
-            type: Number,
-            default: 0
-        },
-
-        isActive: {
-            type: Boolean,
-            default: true
-        }
+    discountType: {
+        type: String,
+        enum: ["PERCENT", "FLAT"]
     },
-    { timestamps: true }
-);
+
+    discountValue: Number,
+    maxDiscount: Number,
+
+    minOrderAmount: Number,
+
+    applicableServices: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Service"
+    }],
+
+    usageLimit: Number,
+    usedCount: { type: Number, default: 0 },
+
+    perUserLimit: { type: Number, default: 1 },
+
+    validFrom: Date,
+    validTill: Date,
+
+    isActive: { type: Boolean, default: true }
+
+}, { timestamps: true });
+
 
 export default mongoose.model("Coupon", couponSchema);

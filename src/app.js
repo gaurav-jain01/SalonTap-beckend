@@ -12,6 +12,7 @@ import walletRoutes from './routes/users/walletRoutes.js';
 import userServiceRoutes from './routes/users/serviceRoutes.js';
 import userCartRoutes from './routes/users/cartRoutes.js';
 import homeRoutes from './routes/users/homeRoutes.js';
+import userBookingRoutes from './routes/users/bookingRoutes.js';
 
 
 // Admin app
@@ -24,6 +25,7 @@ import bannerRoutes from './routes/admin/bannerRoutes.js';
 import serviceProviderRoutes from './routes/admin/serviceProviderRoutes.js';
 import couponRoutes from './routes/admin/couponRoutes.js';
 import adminUploadRoutes from './routes/admin/uploadRoutes.js';
+import adminBookingRoutes from './routes/admin/bookingRoute.js';
 
 
 const options = {
@@ -68,8 +70,9 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/home',homeRoutes);
 app.use('/api/v1/address', addressRoutes);
 app.use('/api/v1/wallet', walletRoutes);
-// app.use('/api/v1/services', userServiceRoutes);
-// app.use('/api/v1/cart', userCartRoutes);
+app.use('/api/v1/services', userServiceRoutes);
+app.use('/api/v1/cart', userCartRoutes);
+app.use('/api/v1/bookings', userBookingRoutes);
 
 // Routes 
 // V3 = admin side routes 
@@ -83,6 +86,7 @@ app.use('/api/v3/services', serviceRoutes);
 app.use('/api/v3/banners', bannerRoutes);
 app.use('/api/v3/sp', serviceProviderRoutes);
 app.use('/api/v3/coupons', couponRoutes);
+app.use('/api/v3/bookings', adminBookingRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to SalonTap API' });

@@ -240,3 +240,40 @@ export const deleteBanner = async (req, res) => {
         });
     }
 };
+
+export const toggleBannerStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid banner ID"
+            });
+        }
+
+        const banner = await Banner.findById(id);
+
+        if (!banner) {
+            return res.status(404).json({
+                success: false,
+                message: "Banner not found"
+            });
+        }
+
+        banner.isActive = !banner.isActive;
+        await banner.save();
+
+        return res.status(200).json({
+
+            success: true,
+            message: "Banner status toggled successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
