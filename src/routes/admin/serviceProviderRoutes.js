@@ -14,7 +14,10 @@ import {
     updateServiceProviderSlots,
     deleteServiceProviderSlots,
     addServiceProviderDocument,
-    getServiceProviderDocuments
+    getServiceProviderDocuments,
+    addServiceProviderService,
+    getServiceProviderService,
+    deleteServiceProviderService
 } from "../../controllers/admin/serviceProviderController.js";
 import { protectAdmin } from "../../middleware/auth.js";
 
@@ -39,5 +42,9 @@ router.delete("/slots/:id", protectAdmin, deleteServiceProviderSlots);
 
 router.post("/document", protectAdmin, addServiceProviderDocument);
 router.get("/documents/:id", protectAdmin, getServiceProviderDocuments);
+
+router.post("/service", protectAdmin, addServiceProviderService);
+router.get("/service/:id", protectAdmin, getServiceProviderService);
+router.delete("/service/:id", protectAdmin, deleteServiceProviderService);
 
 export default router;

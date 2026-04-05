@@ -3,6 +3,9 @@ import ServiceProvider from "../../models/serviceProviderModel.js";
 import Address from "../../models/addressModel.js";
 import Slot from "../../models/slotModel.js";
 import Document from "../../models/documentModel.js";
+import VendorService from "../../models/serviceProviderServiceModel.js";
+import Service from "../../models/serviceModel.js";
+
 
 export const createServiceProvider = async (req, res) => {
     try {
@@ -604,3 +607,95 @@ export const getServiceProviderDocuments = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// 🔹 Vendor Service linking
+export const addServiceProviderService = async (req, res) => {
+    try {
+        const { serviceProviderId, serviceId } = req.body;
+
+        if (!serviceProviderId || !serviceId) {
+            return res.status(400).json({
+                success: false,
+                message: "serviceProviderId and serviceId are required"
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(serviceProviderId) || !mongoose.Types.ObjectId.isValid(serviceId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid serviceProviderId or serviceId format"
+            });
+        }
+
+        // 🔹 Check if Service Provider exists
+        const provider = await ServiceProvider.findById(serviceProviderId);
+        if (!provider) {
+            return res.status(404).json({
+                success: false,
+                message: "Service Provider not found"
+            });
+        }
+
+        // 🔹 Check if Service exists
+        const service = await Service.findById(serviceId);
+        if (!service) {
+            return res.status(404).json({
+                success: false,
+                message: "Service not found"
+            });
+        }
+
+        // 🔹 Check if link already exists
+        const existing = await VendorService.findOne({ serviceProviderId, serviceId });
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                message: "This service is already added for this vendor"
+            });
+        }
+
+        const vendorService = await VendorService.create({
+            serviceProviderId,
+            serviceId,
+            rate: 0
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Service assigned to vendor successfully",
+            data: vendorService
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getServiceProviderService = async (req, res) => {
+    try {
+        const { id } = req.params; // Vendor ID
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid vendor ID" });
+        }
+        const services = await VendorService.find({ serviceProviderId: id }).populate("serviceId");
+        return res.status(200).json({ success: true, data: services });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const deleteServiceProviderService = async (req, res) => {
+    try {
+        const { id } = req.params; // VendorService ID
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid ID" });
+        }
+        const deleted = await VendorService.findByIdAndDelete(id);
+        if (!deleted) return res.status(404).json({ success: false, message: "Record not found" });
+
+        return res.status(200).json({ success: true, message: "Deleted successfully" });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+

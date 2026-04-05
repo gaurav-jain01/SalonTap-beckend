@@ -109,4 +109,11 @@ serviceProviderSchema.virtual("addresses", {
   foreignField: "serviceProvider"
 });
 
+// 🔹 Virtual: Offered Services
+serviceProviderSchema.virtual("services", {
+  ref: "VendorService",
+  localField: "_id",
+  foreignField: "serviceProviderId"
+});
+
 export default mongoose.model("ServiceProvider", serviceProviderSchema);
