@@ -140,7 +140,6 @@ export const getServices = async (req, res) => {
             const service = await Service.findOne({
                 _id: id,
                 isDeleted: false,
-                isActive: true
             })
                 .populate("category", "name")
                 .populate("subCategory", "name")
@@ -175,8 +174,7 @@ export const getServices = async (req, res) => {
 
         // 🔹 Base Filter (IMPORTANT)
         const filter = {
-            isDeleted: false,
-            isActive: true
+            isDeleted: false
         };
 
         // 🔹 Search (basic for now)

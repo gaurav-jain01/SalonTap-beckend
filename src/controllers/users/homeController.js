@@ -18,7 +18,7 @@ export const getHomeData = async (req, res) => {
 
         const [banners, services, categories] = await Promise.all([
             bannerModel.find({ isActive: true }).sort({ order: 1 }).lean(),
-            serviceModel.find({ isActive: true }).sort({ order: 1 }).limit(4).lean(),
+            serviceModel.find({ isActive: true, isDeleted: false }).sort({ order: 1 }).limit(4).lean(),
             categoryModel.find({ isActive: true }).sort({ order: 1 }).lean()
         ]);
         
@@ -80,7 +80,7 @@ export const getServicesBySubCategoryId = async (req, res) => {
             });
         }
 
-        const services = await serviceModel.find({ subCategory: subCategoryId, isActive: true }).sort({ order: 1 });
+        const services = await serviceModel.find({ subCategory: subCategoryId, isActive: true, isDeleted: false }).sort({ order: 1 });
 
         return res.status(200).json({
             success: true,

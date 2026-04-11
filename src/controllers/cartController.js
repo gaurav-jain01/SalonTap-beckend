@@ -29,10 +29,10 @@ export const addToCart = async (req, res) => {
         const { serviceId, quantity = 1 } = req.body;
         const userId = req.user._id;
 
-        // 1. Check if service exists
-        const service = await Service.findById(serviceId);
+        // 1. Check if service exists and is active
+        const service = await Service.findOne({ _id: serviceId, isActive: true, isDeleted: false });
         if (!service) {
-            return res.status(404).json({ success: false, message: "Service not found" });
+            return res.status(404).json({ success: false, message: "Service not found or currently unavailable" });
         }
 
         // 2. Find or create cart for user
