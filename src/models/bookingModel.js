@@ -12,13 +12,26 @@ const bookingSchema = new mongoose.Schema(
         serviceProviderId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "ServiceProvider",
-            default: null
+            default: null,
+            index: true
         },
+        items: [
+            {
+                serviceId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Service",
+                    required: true
+                },
 
-        serviceId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Service",
-            required: true
+                name: { type: String, required: true },   // snapshot
+                price: { type: Number, required: true },
+                duration: { type: Number, required: true } // in minutes
+            }
+        ],
+        itemType: {
+            type: String,
+            enum: ["service"], // future: "package"
+            default: "service"
         },
 
         bookingDate: {
@@ -28,12 +41,12 @@ const bookingSchema = new mongoose.Schema(
         },
 
         startTime: {
-            type: String,
+            type: Date,
             required: true
         },
 
         endTime: {
-            type: String
+            type: Date
         },
 
         addressId: {
@@ -47,13 +60,25 @@ const bookingSchema = new mongoose.Schema(
             ref: "Coupon",
             default: null
         },
-
+        couponCode: {
+            type: String,
+            default: ""
+        },
+        couponSnapshot: {
+            type: {
+                type: String
+            },
+            value: Number
+        },
         priceDetails: {
-            servicePrice: { type: Number, required: true },
-            discount: { type: Number, default: 0 },
+            subtotal: { type: Number, required: true },
+            basePrice: { type: Number, required: true },
+
+            couponDiscount: { type: Number, default: 0 },
+            extraDiscount: { type: Number, default: 0 },
+
             finalAmount: { type: Number, required: true }
         },
-
         paymentDetails: {
             method: {
                 type: String,
@@ -104,6 +129,20 @@ const bookingSchema = new mongoose.Schema(
 );
 
 bookingSchema.index({ bookingDate: 1, startTime: 1 });
+bookingSchema.index({ serviceProviderId: 1, bookingDate: 1 });
+
+bookingSchema.pre("save", function () {
+    if (this.startTime && this.items?.length) {
+        const totalDuration = this.items.reduce(
+            (sum, item) => sum + (item.duration || 0),
+            0
+        );
+
+        this.endTime = new Date(
+            this.startTime.getTime() + totalDuration * 60000
+        );
+    }
+});
 
 export default mongoose.model("Booking", bookingSchema);
 

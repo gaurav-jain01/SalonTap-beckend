@@ -19,7 +19,8 @@ const cartSchema = new mongoose.Schema(
                 quantity: {
                     type: Number,
                     default: 1,
-                    min: 1
+                    min: 1,
+                    max: 1
                 },
                 // Capture prices at the time of adding to cart (optional but helpful)
                 priceAtAdd: {
@@ -37,15 +38,29 @@ const cartSchema = new mongoose.Schema(
         totalSalePrice: {
             type: Number,
             default: 0
+        },
+        
+        // Coupon Details
+        couponId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Coupon",
+            default: null
+        },
+        couponCode: {
+            type: String,
+            default: ""
+        },
+        discountAmount: {
+            type: Number,
+            default: 0
         }
     },
     { timestamps: true }
 );
 
-// 🔹 Middleware to calculate totals before saving
-cartSchema.pre("save", async function (next) {
-    // This is just a backup; totals should ideally be managed in the controller for efficiency
-    next();
+// Totals are managed in the controller for efficiency
+cartSchema.post("save", function (doc) {
+    // Optional: add post-save logic if needed
 });
 
 export default mongoose.model("Cart", cartSchema);
