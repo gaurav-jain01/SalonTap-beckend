@@ -1,6 +1,7 @@
 import User from "../../models/userModel.js"
 import generateToken from "../../utils/generateToken.js";
 import Wallet from "../../models/walletModel.js";
+import cloudinary from "../../config/cloudinary.js";
 
 // Sample controller
 export const sendOtp = async (req, res) => {
@@ -100,7 +101,23 @@ export const profile = async (req, res) => {
     }
     // Update only if value exists in request
     if (name !== undefined) user.name = name;
-    if (email !== undefined) user.email = email;
+    
+    if (email !== undefined) {
+      // Basic email regex validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (email && !emailRegex.test(email)) {
+        return res.status(400).json({ success: false, error: "Invalid email format" });
+      }
+
+      // Check if email is already taken by another user
+      if (email && email !== user.email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          return res.status(400).json({ success: false, error: "Email already in use" });
+        }
+      }
+      user.email = email;
+    }
     if (gender !== undefined) user.gender = gender;
 
     // Update profile image (Cloudinary URL)

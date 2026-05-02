@@ -2,6 +2,15 @@ import Booking from "../../models/bookingModel.js";
 import Service from "../../models/serviceModel.js";
 import User from "../../models/userModel.js";
 import Address from "../../models/addressModel.js";
+import cache from "../../utils/cache.js";
+
+const clearBookingCache = () => {
+    const keys = cache.keys();
+    const bookingKeys = keys.filter(key => key.startsWith("bookings_"));
+    if (bookingKeys.length > 0) {
+        cache.del(bookingKeys);
+    }
+};
 
 export const createBooking = async (req, res) => {
     try {
@@ -30,14 +39,20 @@ export const createBooking = async (req, res) => {
         const booking = new Booking({
             userId,
             serviceProviderId: serviceProviderId || null,
-            serviceId,
+            items: [{
+                serviceId: service._id,
+                name: service.name,
+                price: service.salePrice,
+                duration: service.duration || 30 // default duration if missing
+            }],
             bookingDate: new Date(bookingDate),
             startTime,
             addressId,
             notes,
             priceDetails: {
-                servicePrice: service.regularPrice,
-                discount: service.regularPrice - service.salePrice,
+                subtotal: service.salePrice,
+                basePrice: service.regularPrice,
+                extraDiscount: 0,
                 finalAmount: service.salePrice
             },
             paymentDetails: {
@@ -49,6 +64,9 @@ export const createBooking = async (req, res) => {
         });
 
         await booking.save();
+
+        // 🔹 Clear Cache
+        clearBookingCache();
 
         return res.status(201).json({
             success: true,
@@ -62,35 +80,60 @@ export const createBooking = async (req, res) => {
 
 export const getAllBookings = async (req, res) => {
     try {
-        const { status, page = 1, limit = 10, search } = req.query;
-        const query = {};
+        const { status, page = 1, limit = 10, search, userId, serviceProviderId } = req.query;
 
-        if (status) {
-            query.status = status;
+        // 🔹 Cache Key
+        const cacheKey = `bookings_${status || "all"}_${page}_${limit}_${search || "none"}_${userId || "all"}_${serviceProviderId || "all"}`;
+        const cachedData = cache.get(cacheKey);
+
+        if (cachedData) {
+            return res.status(200).json({
+                success: true,
+                data: cachedData.bookings,
+                pagination: cachedData.pagination,
+                fromCache: true
+            });
         }
+
+        const query = {};
+        if (status) query.status = status;
+        if (userId) query.userId = userId;
+        if (serviceProviderId) query.serviceProviderId = serviceProviderId;
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const bookings = await Booking.find(query)
-            .populate("userId", "name phone email")
-            .populate("serviceProviderId", "name phone")
-            .populate("serviceId", "name")
+            .populate("userId", "name mobile email")
+            .populate("serviceProviderId", "name mobile")
+            .populate({
+                path: "items.serviceId",
+                select: "name price duration"
+            })
             .populate("addressId")
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(parseInt(limit));
+            .limit(parseInt(limit))
+            .lean();
 
         const total = await Booking.countDocuments(query);
 
-        return res.status(200).json({
-            success: true,
-            data: bookings,
+        const responseData = {
+            bookings,
             pagination: {
                 total,
                 page: parseInt(page),
                 limit: parseInt(limit),
                 pages: Math.ceil(total / parseInt(limit))
             }
+        };
+
+        // 🔹 Set Cache (10 minutes)
+        cache.set(cacheKey, responseData);
+
+        return res.status(200).json({
+            success: true,
+            data: responseData.bookings,
+            pagination: responseData.pagination
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
@@ -100,11 +143,14 @@ export const getAllBookings = async (req, res) => {
 export const getBookingById = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.id)
-            .populate("userId")
-            .populate("serviceProviderId")
-            .populate("serviceId")
+            .populate("userId", "name mobile email")
+            .populate("serviceProviderId", "name mobile")
+            .populate({
+                path: "items.serviceId"
+            })
             .populate("addressId")
-            .populate("couponId");
+            .populate("couponId")
+            .lean();
 
         if (!booking) {
             return res.status(404).json({ success: false, message: "Booking not found" });
@@ -127,7 +173,7 @@ export const updateBookingStatus = async (req, res) => {
 
         // Add validation for status transitions if needed
         booking.status = status;
-        
+
         if (status === "COMPLETED") {
             // If it's COD, it's now paid when completed
             if (booking.paymentDetails.method === "COD") {
@@ -137,6 +183,9 @@ export const updateBookingStatus = async (req, res) => {
         }
 
         await booking.save();
+
+        // 🔹 Clear Cache
+        clearBookingCache();
 
         return res.status(200).json({
             success: true,
@@ -154,8 +203,15 @@ export const deleteBooking = async (req, res) => {
         if (!booking) {
             return res.status(404).json({ success: false, message: "Booking not found" });
         }
+
+        // 🔹 Clear Cache
+        clearBookingCache();
+
         return res.status(200).json({ success: true, message: "Booking deleted" });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
     }
 };
+
+
+

@@ -1,10 +1,13 @@
 import userModel from "../../models/userModel.js";
 import addressModel from "../../models/addressModel.js";
+import walletModel from "../../models/walletModel.js";
 
 export const createUser = async (req, res) => {
     try {
         const { name, email, gender, mobile, profileImage, profileImagePublicId } = req.body;
         const user = await userModel.create({ name, email, gender, mobile, profileImage, profileImagePublicId });
+        const wallet = await walletModel.create({ userId: user._id, balance: { available: 0, hold: 0 } });
+
         res.status(200).json({
             success: true,
             user,
@@ -19,8 +22,8 @@ export const createUser = async (req, res) => {
 
 export const getAllUser = async (req, res) => {
     try {
-        const { 
-            name, email, gender, mobile, 
+        const {
+            name, email, gender, mobile,
             isPhoneVerified, isNewUser, search, isActive,
             page = 1, limit = 10
         } = req.query;
@@ -66,13 +69,26 @@ export const getAllUser = async (req, res) => {
             .skip(skip)
             .limit(limitNumber);
 
+        // Fetch wallets for these users
+        const wallets = await walletModel.find({ userId: { $in: users.map(u => u._id) } }).select("userId balance.available");
+        const walletMap = wallets.reduce((acc, wallet) => {
+            acc[wallet.userId.toString()] = wallet.balance.available;
+            return acc;
+        }, {});
+
+        // Attach wallet balance to each user
+        const usersWithWallet = users.map(user => ({
+            ...user.toObject(),
+            walletBalance: walletMap[user._id.toString()] || 0
+        }));
+
         res.status(200).json({
             success: true,
             totalUsers,
             totalPages: Math.ceil(totalUsers / limitNumber),
             currentPage: pageNumber,
-            results: users.length,
-            users,
+            results: usersWithWallet.length,
+            users: usersWithWallet,
         });
 
     } catch (error) {
@@ -93,11 +109,14 @@ export const getUserById = async (req, res) => {
                 message: "User not found",
             });
         }
-        const address = await addressModel.find({ user: id });
+        const address = await addressModel.find({ user: id }).select("-user -serviceProvider -__v -updatedAt");
+        const wallet = await walletModel.findOne({ userId: id }).select("balance currency status -_id");
+
         res.status(200).json({
             success: true,
             user,
             address,
+            wallet: wallet || null,
         });
     } catch (error) {
         res.status(500).json({

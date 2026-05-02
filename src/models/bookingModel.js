@@ -1,5 +1,16 @@
 import mongoose from "mongoose";
 
+const itemSchema = new mongoose.Schema({
+    serviceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Service",
+        required: true
+    },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    duration: { type: Number, required: true }
+}, { _id: false });
+
 const bookingSchema = new mongoose.Schema(
     {
         userId: {
@@ -15,19 +26,7 @@ const bookingSchema = new mongoose.Schema(
             default: null,
             index: true
         },
-        items: [
-            {
-                serviceId: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: "Service",
-                    required: true
-                },
-
-                name: { type: String, required: true },   // snapshot
-                price: { type: Number, required: true },
-                duration: { type: Number, required: true } // in minutes
-            }
-        ],
+        items: [itemSchema],
         itemType: {
             type: String,
             enum: ["service"], // future: "package"

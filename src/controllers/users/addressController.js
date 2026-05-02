@@ -2,6 +2,10 @@ import Address from "../../models/addressModel.js";
 
 export const addAddress = async (req, res) => {
     try {
+
+        console.log("📥 ADD ADDRESS REQUEST");
+        console.log("User:", req.user?._id);
+        console.log("Body:", JSON.stringify(req.body, null, 2));
         const user = req.user;
 
         // 🔹 Ensure logged-in user
@@ -27,6 +31,16 @@ export const addAddress = async (req, res) => {
             isDefault
         } = req.body;
 
+        console.log("📌 Parsed Fields:", {
+            main_text,
+            secondary_text,
+            latitude,
+            longitude,
+            label,
+            isDefault
+        });
+
+
         // 🔹 Validation
         if (!main_text || !secondary_text) {
             return res.status(400).json({
@@ -49,6 +63,8 @@ export const addAddress = async (req, res) => {
                 { $set: { isDefault: false } }
             );
         }
+
+        console.log("💾 Creating address in DB...");
 
         // 🔥 Create address
         const address = await Address.create({
@@ -79,6 +95,11 @@ export const addAddress = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("❌ ADD ADDRESS ERROR");
+        console.error("Message:", error.message);
+        console.error("Stack:", error.stack);
+        console.error("Request Body:", req.body);
+
         return res.status(500).json({
             success: false,
             message: error.message
